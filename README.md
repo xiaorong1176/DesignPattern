@@ -45,10 +45,10 @@ public class SingletonOne {
 ```
 
 注释中已经有简单的分析了。接下来分析一下关于“非线程安全”的部分。
-　　1、当线程A进入到第28行（#1）时，检查instance是否为空，此时是空的。
-　　2、此时，线程B也进入到28行（#1）。切换到线程B执行。同样检查instance为空，于是往下执行29行（#2），创建了一个实例。接着返回了。
-　　3、在切换回线程A，由于之前检查到instance为空。所以也会执行29行（#2）创建实例。返回。
-　　4、至此，已经有两个实例被创建了，这不是我们所希望的。 
+>　　1、当线程A进入到第28行（#1）时，检查instance是否为空，此时是空的。
+>　　2、此时，线程B也进入到28行（#1）。切换到线程B执行。同样检查instance为空，于是往下执行29行（#2），创建了一个实例。接着返回了。
+>　　3、在切换回线程A，由于之前检查到instance为空。所以也会执行29行（#2）创建实例。返回。
+>　　4、至此，已经有两个实例被创建了，这不是我们所希望的。 
 
 ### 怎么解决线程安全问题？
 
@@ -116,10 +116,10 @@ public static SingletonThree getInstance() {
 ```
     
 这个方法可行么？分析一下发现是不行的！
->　 1、线程A和线程B同时进入//1的位置。这时instance是为空的。
-　　2、线程A进入synchronized块，创建实例，线程B等待。
-　　3、线程A返回，线程B继续进入synchronized块，创建实例。。。
-　　4、这时已经有两个实例创建了。 
+>　1、线程A和线程B同时进入//1的位置。这时instance是为空的。
+>　2、线程A进入synchronized块，创建实例，线程B等待。
+>　3、线程A返回，线程B继续进入synchronized块，创建实例。。。
+>　4、这时已经有两个实例创建了。 
 
 为了解决这个问题。我们需要在//2的之前，再加上一次检查instance是否被实例化。（双重检查加锁）接下来，代码变成了这样：
 ``` java
@@ -138,12 +138,12 @@ public static SingletonThree getInstance() {
 
 下面我们看一下出问题的过程：
 >　 1、线程A进入getInstance()方法。
-　　2、因为此时instance为空，所以线程A进入synchronized块。
-　　3、线程A执行 instance = new SingletonThree(); 把实例变量instance设置成了非空。（注意，是在调用构造方法之前。）
-　　4、线程A退出，线程B进入。
-　　5、线程B检查instance是否为空，此时不为空（第三步的时候被线程A设置成了非空）。线程B返回instance的引用。（问题出现了，这时instance的引用并不是SingletonThree的实例，因为没有调用构造方法。） 
-　　6、线程B退出，线程A进入。
-　　7、线程A继续调用构造方法，完成instance的初始化，再返回。 
+>　　2、因为此时instance为空，所以线程A进入synchronized块。
+>　　3、线程A执行 instance = new SingletonThree(); 把实例变量instance设置成了非空。（注意，是在调用构造方法之前。）
+>　　4、线程A退出，线程B进入。
+>　　5、线程B检查instance是否为空，此时不为空（第三步的时候被线程A设置成了非空）。线程B返回instance的引用。（问题出现了，这时instance的引用并不是SingletonThree的实例，因为没有调用构造方法。） 
+>　　6、线程B退出，线程A进入。
+>　　7、线程A继续调用构造方法，完成instance的初始化，再返回。 
 
 好吧，继续努力，解决由“无序写”带来的问题。
 
@@ -165,17 +165,17 @@ public static SingletonThree getInstance() {
 ```
 解释一下执行步骤。
 > 　1、线程A进入getInstance()方法。
-　　2、因为instance是空的 ，所以线程A进入位置//1的第一个synchronized块。
-　　3、线程A执行位置//2的代码，把instance赋值给本地变量temp。instance为空，所以temp也为空。 
-　　4、因为temp为空，所以线程A进入位置//3的第二个synchronized块。
-　　5、线程A执行位置//4的代码，把temp设置成非空，但还没有调用构造方法！（“无序写”问题） 
-　　6、线程A阻塞，线程B进入getInstance()方法。
-　　7、因为instance为空，所以线程B试图进入第一个synchronized块。但由于线程A已经在里面了。所以无法进入。线程B阻塞。
-　　8、线程A激活，继续执行位置//4的代码。调用构造方法。生成实例。
-　　9、将temp的实例引用赋值给instance。退出两个synchronized块。返回实例。
-　　10、线程B激活，进入第一个synchronized块。
-　　11、线程B执行位置//2的代码，把instance实例赋值给temp本地变量。
-　　12、线程B判断本地变量temp不为空，所以跳过if块。返回instance实例。
+>　　2、因为instance是空的 ，所以线程A进入位置//1的第一个synchronized块。
+>　　3、线程A执行位置//2的代码，把instance赋值给本地变量temp。instance为空，所以temp也为空。 
+>　　4、因为temp为空，所以线程A进入位置//3的第二个synchronized块。
+>　　5、线程A执行位置//4的代码，把temp设置成非空，但还没有调用构造方法！（“无序写”问题） 
+>　　6、线程A阻塞，线程B进入getInstance()方法。
+>　　7、因为instance为空，所以线程B试图进入第一个synchronized块。但由于线程A已经在里面了。所以无法进入。线程B阻塞。
+>　　8、线程A激活，继续执行位置//4的代码。调用构造方法。生成实例。
+>　　9、将temp的实例引用赋值给instance。退出两个synchronized块。返回实例。
+>　　10、线程B激活，进入第一个synchronized块。
+>　　11、线程B执行位置//2的代码，把instance实例赋值给temp本地变量。
+>　　12、线程B判断本地变量temp不为空，所以跳过if块。返回instance实例。
 
 　　好吧，问题终于解决了，线程安全了。但是我们的代码由最初的3行代码变成了现在的一大坨~。于是又有了下面的方法。
 
@@ -266,9 +266,9 @@ public class SingletonFive {
 
 　　**最后，总结一下：**
 > 　1、如果单例对象不大，允许非懒加载，可以使用方法三。
-　　2、如果需要懒加载，且允许一部分性能损耗，可以使用方法一。（官方说目前高版本的synchronized已经比较快了）
-　　3、如果需要懒加载，且不怕麻烦，可以使用方法二。
-　　4、如果需要懒加载，没有且！推荐使用方法四。 
+>　　2、如果需要懒加载，且允许一部分性能损耗，可以使用方法一。（官方说目前高版本的synchronized已经比较快了）
+>　　3、如果需要懒加载，且不怕麻烦，可以使用方法二。
+>　　4、如果需要懒加载，没有且！推荐使用方法四。 
 
 ## 单例模式二
 
@@ -385,7 +385,7 @@ public class SingletonFive {
 有两个问题需要注意
 
 > 1、如果单例由不同的类装载器装入，那便有可能存在多个单例类的实例。假定不是远端存取，例如一些servlet容器对每个servlet使用完全不同的类  装载器，这样的话如果有两个servlet访问一个单例类，它们就都会有各自的实例。
-  2、如果Singleton实现了java.io.Serializable接口，那么这个类的实例就可能被序列化和复原。不管怎样，如果你序列化一个单例类的对象，接下来复原多个那个对象，那你就会有多个单例类的实例。
+>  2、如果Singleton实现了java.io.Serializable接口，那么这个类的实例就可能被序列化和复原。不管怎样，如果你序列化一个单例类的对象，接下来复原多个那个对象，那你就会有多个单例类的实例。
 
 对第一个问题修复的办法是：
 ``` java
@@ -619,7 +619,7 @@ count2=0
 > 分析:
 
 > 1、SingleTon singleTon = SingleTon.getInstance();调用了类的SingleTon调用了类的静态方法，触发类的初始化
-2、类加载的时候在准备过程中为类的静态变量分配内存并初始化默认值 singleton=null count1=0,count2=0
-3、类初始化化，为类的静态变量赋值和执行静态代码快。singleton赋值为new SingleTon()调用类的构造方法
-4、调用类的构造方法后count1=1;count2=1
-5、继续为count1与count2赋值,此时count1没有赋值操作,所有count1为1,但是count2执行赋值操作就变为0 
+>2、类加载的时候在准备过程中为类的静态变量分配内存并初始化默认值 singleton=null count1=0,count2=0
+>3、类初始化化，为类的静态变量赋值和执行静态代码快。singleton赋值为new SingleTon()调用类的构造方法
+>4、调用类的构造方法后count1=1;count2=1
+>5、继续为count1与count2赋值,此时count1没有赋值操作,所有count1为1,但是count2执行赋值操作就变为0 
